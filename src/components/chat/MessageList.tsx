@@ -11,18 +11,6 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, isLoading }: MessageListProps) {
-  if (messages.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full px-4 text-center">
-        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-50 mb-4 shadow-sm">
-          <Bot className="h-7 w-7 text-blue-600" />
-        </div>
-        <p className="text-neutral-900 font-semibold text-lg mb-2">Start a conversation to generate React components</p>
-        <p className="text-neutral-500 text-sm max-w-sm">I can help you create buttons, forms, cards, and more</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-full overflow-y-auto px-4 py-6">
       <div className="space-y-6 max-w-4xl mx-auto w-full">
@@ -56,6 +44,29 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                   {message.parts ? (
                     <>
                       {message.parts.map((part, partIndex) => {
+                        // Tool parts: "tool-invocation" (v5) or "tool-<name>" (v6)
+                        if (part.type.startsWith("tool-")) {
+                          const { toolInvocation } = part as unknown as {
+                            toolInvocation: { state: string; toolName: string };
+                          };
+                          const isDone = toolInvocation.state === "result";
+                          return (
+                            <div key={partIndex} className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-neutral-50 rounded-lg text-xs font-mono border border-neutral-200">
+                              {isDone ? (
+                                <>
+                                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                  <span className="text-neutral-700">{toolInvocation.toolName}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
+                                  <span className="text-neutral-700">{toolInvocation.toolName}</span>
+                                </>
+                              )}
+                            </div>
+                          );
+                        }
+
                         switch (part.type) {
                           case "text":
                             return message.role === "user" ? (
@@ -72,23 +83,6 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                               <div key={partIndex} className="mt-3 p-3 bg-white/50 rounded-md border border-neutral-200">
                                 <span className="text-xs font-medium text-neutral-600 block mb-1">Reasoning</span>
                                 <span className="text-sm text-neutral-700">{part.reasoning}</span>
-                              </div>
-                            );
-                          case "tool-invocation":
-                            const tool = part.toolInvocation;
-                            return (
-                              <div key={partIndex} className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-neutral-50 rounded-lg text-xs font-mono border border-neutral-200">
-                                {tool.state === "result" && tool.result ? (
-                                  <>
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                    <span className="text-neutral-700">{tool.toolName}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
-                                    <span className="text-neutral-700">{tool.toolName}</span>
-                                  </>
-                                )}
                               </div>
                             );
                           case "source":
