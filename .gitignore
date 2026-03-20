@@ -1,1 +1,21 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+next-env.d.ts
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# Database
+prisma/dev.db
+prisma/*.db-journal
+
+# Generated Prisma client (regenerated via `npm run setup`)
+src/generated/
+
+# Dev daemon log output (from `npm run dev:daemon`)
+logs.txt
